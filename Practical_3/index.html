@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Grading System</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 500px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; position: relative; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        input:focus { border-color: #3498db; outline: none; }
+        .error-msg { color: #e74c3c; font-size: 12px; margin-top: 4px; font-weight: bold; display: none; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #2980b9; }
+        #result-box { margin-top: 25px; padding: 20px; border-radius: 6px; display: none; }
+        .pass { background-color: #d4edda; border-left: 6px solid #28a745; color: #155724; }
+        .fail { background-color: #f8d7da; border-left: 6px solid #dc3545; color: #721c24; }
+        .summary-list { padding-left: 20px; margin: 10px 0 0 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Grading & Evaluation System</h2>
+    <form id="gradingForm" onsubmit="event.preventDefault(); evaluateStudent();">
+        
+        <div class="form-group">
+            <label for="studentName">Student Name:</label>
+            <input type="text" id="studentName" placeholder="e.g., Amit Sharma">
+            <div id="nameError" class="error-msg"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="marks">Total Marks Obtained (0 - 100):</label>
+            <input type="number" id="marks" placeholder="e.g., 85" min="0" max="100" step="0.1">
+            <div id="marksError" class="error-msg"></div>
+        </div>
+
+        <button type="submit">Evaluate Grade</button>
+    </form>
+
+    <div id="result-box"></div>
+</div>
+
+<script>
+    function evaluateStudent() {
+        // 1. DOM ELEMENT SELECTION
+        const nameInput = document.getElementById("studentName");
+        const marksInput = document.getElementById("marks");
+        
+        const nameError = document.getElementById("nameError");
+        const marksError = document.getElementById("marksError");
+        const resultBox = document.getElementById("result-box");
+
+        // Reset error messages and visual styles
+        nameError.style.display = "none";
+        marksError.style.display = "none";
+        resultBox.style.display = "none";
+
+        // Trim values to clean up accidental whitespaces
+        const studentName = nameInput.value.trim();
+        const marksRaw = marksInput.value.trim();
+        const marks = parseFloat(marksRaw);
+
+        // 2. FORM VALIDATION CONTROL STRUCTURE (if/else)
+        let isValid = true;
+
+        // Name Validation
+        if (studentName === "") {
+            nameError.textContent = "Error: Student name cannot be empty.";
+            nameError.style.display = "block";
+            isValid = false;
+        } else if (studentName.length < 3) {
+            nameError.textContent = "Error: Name must be at least 3 characters long.";
+            nameError.style.display = "block";
+            isValid = false;
+        }
+
+        // Marks Validation
+        if (marksRaw === "") {
+            marksError.textContent = "Error: Please enter the marks.";
+            marksError.style.display = "block";
+            isValid = false;
+        } else if (isNaN(marks) || marks < 0 || marks > 100) {
+            marksError.textContent = "Error: Marks must be a valid numeric score between 0 and 100.";
+            marksError.style.display = "block";
+            isValid = false;
+        }
+
+        // Stop execution if form validation fails
+        if (!isValid) return;
+
+        // 3. GRADING LOGIC CONTROL STRUCTURE (if / else-if / else ladder)
+        let grade = "";
+        let remarks = "";
+
+        if (marks >= 90) {
+            grade = "A+";
+        } else if (marks >= 80) {
+            grade = "A";
+        } else if (marks >= 70) {
+            grade = "B";
+        } else if (marks >= 60) {
+            grade = "C";
+        } else if (marks >= 50) {
+            grade = "D";
+        } else if (marks >= 40) {
+            grade = "E";
+        } else {
+            grade = "F";
+        }
+
+        // 4. REMARKS LOGIC CONTROL STRUCTURE (switch-case matching)
+        let isPassed = true;
+
+        switch (grade) {
+            case "A+":
+                remarks = "Outstanding performance! Keep it up.";
+                break;
+            case "A":
+                remarks = "Excellent work! Highly commendable.";
+                break;
+            case "B":
+                remarks = "Very Good. Solid understanding of the material.";
+                break;
+            case "C":
+                remarks = "Good. Room for minor improvements.";
+                break;
+            case "D":
+            case "E":
+                remarks = "Satisfactory. Needs to put in more consistent effort.";
+                break;
+            case "F":
+                remarks = "Failed. Requires critical attention and academic support.";
+                isPassed = false;
+                break;
+            default:
+                remarks = "Status unknown.";
+        }
+
+        // 5. RENDERING RESULTS DYNAMICALLY WITH TEMPLATE LITERALS
+        // Assigning proper CSS classes based on passing status
+        resultBox.className = isPassed ? "pass" : "fail";
+
+        resultBox.innerHTML = `
+            <h3>Evaluation Result: ${isPassed ? "PASSED" : "FAILED"}</h3>
+            <p><strong>Student Name:</strong> ${studentName}</p>
+            <p><strong>Score Achieved:</strong> ${marks}%</p>
+            <p><strong>Assigned Grade:</strong> ${grade}</p>
+            <p><strong>Remarks:</strong> ${remarks}</p>
+        `;
+
+        // Smoothly reveal the output box
+        resultBox.style.display = "block";
+    }
+</script>
+
+</body>
+</html>
