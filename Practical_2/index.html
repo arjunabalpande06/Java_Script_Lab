@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Calculator Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; max-width: 400px; }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007BFF; color: white; border: none; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #0056b3; }
+        #receipt { margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 5px solid #007BFF; display: none; white-space: pre-line; }
+    </style>
+</head>
+<body>
+
+    <h2>Billing Calculator</h2>
+    
+    <div class="input-group">
+        <label for="itemName">Item Name:</label>
+        <input type="text" id="itemName" value="Wireless Mouse">
+    </div>
+
+    <div class="input-group">
+        <label for="price">Price (₹):</label>
+        <input type="number" id="price" value="1200">
+    </div>
+
+    <div class="input-group">
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" value="2">
+    </div>
+
+    <div class="input-group">
+        <label for="taxRate">Tax Rate (%):</label>
+        <select id="taxRate">
+            <option value="0.05">5% (GST)</option>
+            <option value="12">12% (GST)</option>
+            <option value="18" selected>18% (GST)</option>
+        </select>
+    </div>
+
+    <button onclick="calculateBill()">Generate Receipt</button>
+
+    <div id="receipt"></div>
+
+    <script>
+        // 1. DEMONSTRATING VARIABLE DECLARATIONS
+        // const: Block-scoped, cannot be reassigned. Perfect for configuration values.
+        const DEFAULT_CURRENCY = "₹";
+
+        function calculateBill() {
+            // var: Function-scoped (legacy syntax). Avoid using this in modern code.
+            // We use it here just to demonstrate its hoisting and scope property.
+            var conversionMessage = "Processing order...";
+            console.log(conversionMessage);
+
+            // let: Block-scoped, reassignable. Ideal for values that change during calculation.
+            let subtotal = 0;
+
+            // 2. FETCHING USER INPUT
+            const nameInput = document.getElementById("itemName").value;
+            const priceInput = parseFloat(document.getElementById("price").value);
+            const qtyInput = parseInt(document.getElementById("quantity").value);
+            const taxInput = parseFloat(document.getElementById("taxRate").value) / 100;
+
+            // Create a cart item object to demonstrate destructuring
+            const cartItem = {
+                title: nameInput,
+                unitPrice: priceInput,
+                quantity: qtyInput,
+                taxRate: taxInput
+            };
+
+            // 3. DEMONSTRATING DESTRUCTURING
+            // Extracts values straight out of the object into individual variables
+            const { title, unitPrice, quantity, taxRate } = cartItem;
+
+            // Math logic using variables extracted via destructuring
+            subtotal = unitPrice * quantity;
+            const taxAmount = subtotal * taxRate;
+            const totalBill = subtotal + taxAmount;
+
+            // 4. DEMONSTRATING TEMPLATE LITERALS
+            // Uses backticks (`) and ${} to embed expressions and maintain multi-line formatting
+            const receiptOutput = `
+                <strong>--- INVOICE RECEIPT ---</strong>
+                Item: ${title}
+                Unit Price: ${DEFAULT_CURRENCY}${unitPrice.toFixed(2)}
+                Qty: ${quantity}
+                ------------------------
+                Subtotal: ${DEFAULT_CURRENCY}${subtotal.toFixed(2)}
+                Tax (GST): ${DEFAULT_CURRENCY}${taxAmount.toFixed(2)}
+                <strong>Total Amount: ${DEFAULT_CURRENCY}${totalBill.toFixed(2)}</strong>
+            `;
+
+            // Displaying result to the user
+            const receiptDiv = document.getElementById("receipt");
+            receiptDiv.innerHTML = receiptOutput;
+            receiptDiv.style.display = "block";
+        }
+    </script>
+</body>
+</html>
