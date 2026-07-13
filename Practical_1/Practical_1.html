@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Demonstration</title>
+
+    <!-- External JavaScript -->
+    <script src="Practical_1.js"></script>
+
+    <!-- Internal JavaScript -->
+    <script>
+        function showWelcome() {
+            document.getElementById("message").innerHTML =
+                "Welcome to JavaScript Demonstration!";
+        }
+
+        function showTrace() {
+            console.trace("Trace Example");
+        }
+    </script>
+</head>
+<body>
+    <h1>ARJUN BALPANDE</h1>
+    <h1>24070521074</h1><br>
+
+    <h1>JavaScript Demo</h1>
+    <p id="message">Click the button to see the welcome message.</p>
+
+    <!-- Inline JavaScript -->
+    <button onclick="showWelcome()">Show Welcome Message</button>
+
+    <button onclick="showTrace()">Show Console Trace</button>
+
+</body>
+</html>
