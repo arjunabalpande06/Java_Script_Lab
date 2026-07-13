@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Discount Cart Calculator</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            color: #334155;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        h3 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 10px;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #f8fafc;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .add-btn {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .add-btn:hover {
+            background: #2563eb;
+        }
+
+        .remove-btn {
+            background: #fee2e2;
+            color: #ef4444;
+            padding: 8px 12px;
+        }
+
+        .remove-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item-details strong {
+            display: block;
+            color: #1e293b;
+        }
+
+        .item-details small {
+            color: #64748b;
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .item-price {
+            font-weight: bold;
+        }
+
+        .totals {
+            margin-top: 20px;
+            border-top: 2px dashed #e2e8f0;
+            padding-top: 20px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .discount-text {
+            color: #dc2626;
+        }
+
+        .final-total {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #16a34a;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 12px;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #94a3b8;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        #discount-percent {
+            width: 80px;
+            text-align: center;
+        }
+
+        @media (max-width: 500px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>
+        ARJUN BALPANDE
+    </h1>
+    <h2>24070521074</h2>
+
+    <!-- Add Product -->
+    <div class="card">
+        <h3>Add Product to Cart</h3>
+
+        <form id="product-form" class="form-group">
+            <input type="text" id="prod-name" placeholder="Item Name" required>
+
+            <input type="number"
+                   id="prod-mrp"
+                   placeholder="MRP ($)"
+                   min="0.1"
+                   step="0.01"
+                   required>
+
+            <input type="number"
+                   id="prod-qty"
+                   placeholder="Qty"
+                   min="1"
+                   value="1"
+                   required>
+
+            <button type="submit" class="add-btn">
+                Add Item
+            </button>
+        </form>
+    </div>
+
+    <!-- Cart -->
+    <div class="card">
+        <h3>Current Cart</h3>
+
+        <div id="cart-items"></div>
+
+        <div class="totals">
+
+            <div class="total-row">
+                <span>Total Item MRP</span>
+                <span id="total-mrp">$0.00</span>
+            </div>
+
+            <div class="total-row">
+                <span>Discount (%)</span>
+                <input type="number"
+                       id="discount-percent"
+                       value="10"
+                       min="0"
+                       max="100">
+            </div>
+
+            <div class="total-row discount-text">
+                <span>Discount Amount</span>
+                <span id="discount-amount">-$0.00</span>
+            </div>
+
+            <div class="total-row final-total">
+                <span>Final Payable Total</span>
+                <span id="final-price">$0.00</span>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let shoppingCart = [];
+
+    const productForm = document.getElementById("product-form");
+    const cartItemsContainer = document.getElementById("cart-items");
+    const discountInput = document.getElementById("discount-percent");
+
+    productForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const newItem = {
+            id: Date.now(),
+            name: document.getElementById("prod-name").value,
+            mrp: parseFloat(document.getElementById("prod-mrp").value),
+            quantity: parseInt(document.getElementById("prod-qty").value)
+        };
+
+        shoppingCart.push(newItem);
+
+        productForm.reset();
+        document.getElementById("prod-qty").value = "1";
+
+        updateUI();
+    });
+
+    function removeItem(id) {
+        shoppingCart = shoppingCart.filter(
+            item => item.id !== id
+        );
+
+        updateUI();
+    }
+
+    function updateUI() {
+
+        if (shoppingCart.length === 0) {
+            cartItemsContainer.innerHTML =
+                `<p class="empty-msg">
+                    Your shopping cart is currently empty.
+                </p>`;
+        } else {
+            cartItemsContainer.innerHTML =
+                shoppingCart.map(item => `
+                    <div class="item">
+                        <div class="item-details">
+                            <strong>${item.name}</strong>
+                            <small>
+                                MRP: $${item.mrp.toFixed(2)}
+                                × ${item.quantity}
+                            </small>
+                        </div>
+
+                        <div class="item-actions">
+                            <span class="item-price">
+                                $${(item.mrp * item.quantity).toFixed(2)}
+                            </span>
+
+                            <button
+                                class="remove-btn"
+                                onclick="removeItem(${item.id})">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                `).join("");
+        }
+
+        const totalMrp = shoppingCart.reduce(
+            (sum, item) =>
+                sum + (item.mrp * item.quantity),
+            0
+        );
+
+        const discountPercent =
+            parseFloat(discountInput.value) || 0;
+
+        const discountAmount =
+            totalMrp * (discountPercent / 100);
+
+        const finalPrice =
+            totalMrp - discountAmount;
+
+        document.getElementById("total-mrp").innerText =
+            `$${totalMrp.toFixed(2)}`;
+
+        document.getElementById("discount-amount").innerText =
+            `-$${discountAmount.toFixed(2)}`;
+
+        document.getElementById("final-price").innerText =
+            `$${finalPrice.toFixed(2)}`;
+    }
+
+    discountInput.addEventListener("input", updateUI);
+
+    updateUI();
+</script>
+
+</body>
+</html>
