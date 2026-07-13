@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Calculator - Multiple Products</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px auto;
+            max-width: 500px;
+            background: #f4f6f9;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .add-btn {
+            background: #28a745;
+        }
+
+        .add-btn:hover {
+            background: #218838;
+        }
+
+        .bill-btn {
+            background: #007bff;
+        }
+
+        .bill-btn:hover {
+            background: #0056b3;
+        }
+
+        #cartItems,
+        #receipt {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 5px solid #007bff;
+            display: none;
+        }
+
+        .product {
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ARJUN BALPANDE</h1>
+    <h2>24070521074</h2>
+
+    <div class="container">
+        <h2>Billing Calculator</h2>
+
+        <div class="input-group">
+            <label>Item Name</label>
+            <input type="text" id="itemName" placeholder="Enter product name">
+        </div>
+
+        <div class="input-group">
+            <label>Price (₹)</label>
+            <input type="number" id="price" placeholder="Enter price">
+        </div>
+
+        <div class="input-group">
+            <label>Quantity</label>
+            <input type="number" id="quantity" placeholder="Enter quantity">
+        </div>
+
+        <div class="input-group">
+            <label>Tax Rate (%)</label>
+            <select id="taxRate">
+                <option value="5">5% GST</option>
+                <option value="12">12% GST</option>
+                <option value="18" selected>18% GST</option>
+                <option value="28">28% GST</option>
+            </select>
+        </div>
+
+        <button class="add-btn" onclick="addProduct()">
+            Add Product
+        </button>
+
+        <button class="bill-btn" onclick="generateReceipt()">
+            Generate Receipt
+        </button>
+
+        <div id="cartItems"></div>
+
+        <div id="receipt"></div>
+    </div>
+
+    <script>
+        const DEFAULT_CURRENCY = "₹";
+
+        // Array to store products
+        let cart = [];
+
+        function addProduct() {
+            const name = document.getElementById("itemName").value;
+            const price = parseFloat(
+                document.getElementById("price").value
+            );
+            const quantity = parseInt(
+                document.getElementById("quantity").value
+            );
+            const taxRate =
+                parseFloat(
+                    document.getElementById("taxRate").value
+                ) / 100;
+
+            if (
+                name === "" ||
+                isNaN(price) ||
+                isNaN(quantity) ||
+                price <= 0 ||
+                quantity <= 0
+            ) {
+                alert("Please enter valid product details.");
+                return;
+            }
+
+            const product = {
+                title: name,
+                unitPrice: price,
+                quantity: quantity,
+                taxRate: taxRate
+            };
+
+            cart.push(product);
+
+            displayCart();
+
+            document.getElementById("itemName").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById("quantity").value = "";
+        }
+
+        function displayCart() {
+            const cartDiv =
+                document.getElementById("cartItems");
+
+            cartDiv.style.display = "block";
+
+            let output = "<h3>Products Added</h3>";
+
+            cart.forEach((item, index) => {
+                output += `
+                    <div class="product">
+                        ${index + 1}. ${item.title}
+                        - ${item.quantity} x
+                        ${DEFAULT_CURRENCY}${item.unitPrice}
+                    </div>
+                `;
+            });
+
+            cartDiv.innerHTML = output;
+        }
+
+        function generateReceipt() {
+            if (cart.length === 0) {
+                alert("Please add products first.");
+                return;
+            }
+
+            let grandSubtotal = 0;
+            let grandTax = 0;
+
+            let receipt = `
+                <h3>--- INVOICE RECEIPT ---</h3>
+            `;
+
+            cart.forEach((item, index) => {
+                const {
+                    title,
+                    unitPrice,
+                    quantity,
+                    taxRate
+                } = item;
+
+                const subtotal =
+                    unitPrice * quantity;
+
+                const taxAmount =
+                    subtotal * taxRate;
+
+                const total =
+                    subtotal + taxAmount;
+
+                grandSubtotal += subtotal;
+                grandTax += taxAmount;
+
+                receipt += `
+                    <hr>
+                    <strong>Product ${index + 1}</strong><br>
+                    Item: ${title}<br>
+                    Unit Price:
+                    ${DEFAULT_CURRENCY}${unitPrice.toFixed(2)}<br>
+                    Quantity: ${quantity}<br>
+                    Subtotal:
+                    ${DEFAULT_CURRENCY}${subtotal.toFixed(2)}<br>
+                    Tax:
+                    ${DEFAULT_CURRENCY}${taxAmount.toFixed(2)}<br>
+                    Total:
+                    ${DEFAULT_CURRENCY}${total.toFixed(2)}<br>
+                `;
+            });
+
+            const grandTotal =
+                grandSubtotal + grandTax;
+
+            receipt += `
+                <hr>
+                <strong>Grand Subtotal:</strong>
+                ${DEFAULT_CURRENCY}${grandSubtotal.toFixed(2)}<br>
+
+                <strong>Total Tax:</strong>
+                ${DEFAULT_CURRENCY}${grandTax.toFixed(2)}<br>
+
+                <strong>Grand Total:</strong>
+                ${DEFAULT_CURRENCY}${grandTotal.toFixed(2)}
+            `;
+
+            const receiptDiv =
+                document.getElementById("receipt");
+
+            receiptDiv.style.display = "block";
+            receiptDiv.innerHTML = receipt;
+        }
+    </script>
+
+</body>
+</html>
