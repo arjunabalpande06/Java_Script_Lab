@@ -10,3 +10,5 @@
 9.Implement localStorage and sessionStorage to save user preferences like theme settings.
 
 10. Load and display JSON data using fetch() and jQuery $.getJSON(); render results dynamically in a table
+
+11. Use JavaScript timers (setTimeout (), setInterval()) and ES6 modules (import/export to build a dynamic countdown or class scheduler with real-time updates and responsive layout.
