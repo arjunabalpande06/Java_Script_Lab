@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Practical 12 - Real-Time Weather Dashboard</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Background Animated Elements -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+
+  <div class="app-wrapper">
+    <!-- Header / Navigation Bar -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-cloud-sun-rain"></i>
+        </div>
+        <div class="brand-text">
+          <h1>WeatherScope</h1>
+          <span class="badge-lab">JS Lab Practical 12</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Live System Clock -->
+        <div class="live-clock" id="live-clock" title="Current Local Time">
+          <i class="fa-regular fa-clock"></i>
+          <span id="clock-display">--:--:--</span>
+        </div>
+
+        <!-- Temperature Unit Toggle Button (°C / °F) -->
+        <button id="unit-toggle-btn" class="action-btn" title="Toggle between Celsius and Fahrenheit">
+          <span class="unit-text active" id="unit-c">&deg;C</span>
+          <span class="unit-divider">/</span>
+          <span class="unit-text" id="unit-f">&deg;F</span>
+        </button>
+
+        <!-- API Settings Modal Button -->
+        <button id="open-settings-btn" class="action-btn icon-only" title="API Settings & Key Configuration">
+          <i class="fa-solid fa-sliders"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Subtitle / Practical AIM Banner -->
+    <div class="aim-banner">
+      <i class="fa-solid fa-graduation-cap"></i>
+      <span><strong>AIM:</strong> Build an interactive real-time web app using JavaScript and jQuery with DOM, events, storage, and AJAX integration.</span>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="dashboard-main">
+      <!-- Search & Controls Section -->
+      <section class="search-section">
+        <form id="search-form" class="search-form" autocomplete="off">
+          <div class="search-input-group">
+            <i class="fa-solid fa-magnifying-glass search-leading-icon"></i>
+            <input 
+              type="text" 
+              id="city-input" 
+              placeholder="Search for a city (e.g., London, Tokyo, Mumbai, New York)..." 
+              aria-label="City Name"
+              required
+            >
+            <!-- Clear Search Input Button -->
+            <button type="button" id="clear-input-btn" class="clear-input-btn" title="Clear input field">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div class="search-actions">
+            <!-- Search Submit Button -->
+            <button type="submit" id="search-btn" class="btn btn-primary">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>Search</span>
+            </button>
+
+            <!-- Refresh Current Weather Button -->
+            <button type="button" id="refresh-btn" class="btn btn-secondary" title="Refresh current weather data">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Quick Pick Suggestions -->
+        <div class="quick-picks">
+          <span class="quick-picks-label"><i class="fa-solid fa-bolt"></i> Popular:</span>
+          <div class="quick-picks-tags">
+            <button class="quick-city-btn" data-city="London">London</button>
+            <button class="quick-city-btn" data-city="New York">New York</button>
+            <button class="quick-city-btn" data-city="Tokyo">Tokyo</button>
+            <button class="quick-city-btn" data-city="Paris">Paris</button>
+            <button class="quick-city-btn" data-city="Mumbai">Mumbai</button>
+            <button class="quick-city-btn" data-city="Sydney">Sydney</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Alert / Notification Message Box (Dynamic) -->
+      <div id="alert-box" class="alert-box" style="display: none;">
+        <div class="alert-icon">
+          <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <div class="alert-content">
+          <p id="alert-message">Alert message placeholder</p>
+        </div>
+        <button id="alert-close-btn" class="alert-close-btn" title="Dismiss">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loading-spinner" class="loading-container" style="display: none;">
+        <div class="spinner-ring"></div>
+        <p class="loading-text">Fetching real-time weather information...</p>
+        <span class="loading-subtext">Executing jQuery $.ajax() request</span>
+      </div>
+
+      <!-- Weather Information Display Card -->
+      <section id="weather-card" class="weather-card" style="display: none;">
+        <!-- Card Top Bar: Location & Timestamp -->
+        <div class="card-header">
+          <div class="location-details">
+            <h2 id="city-name" class="city-name">City Name</h2>
+            <span id="country-badge" class="country-badge">IN</span>
+          </div>
+          <div class="update-info">
+            <span class="last-updated-label">Last updated:</span>
+            <span id="update-timestamp" class="update-timestamp">Just now</span>
+            <span id="api-source-badge" class="api-source-badge" title="Data Source">Open-Meteo</span>
+          </div>
+        </div>
+
+        <!-- Primary Weather Stats (Hero Section) -->
+        <div class="weather-hero">
+          <div class="hero-left">
+            <div class="weather-icon-wrapper">
+              <img id="weather-icon" src="" alt="Weather condition icon" class="weather-icon">
+            </div>
+            <div class="condition-group">
+              <span id="weather-condition" class="weather-condition">Partly Cloudy</span>
+              <span id="weather-description" class="weather-description">Scattered clouds throughout the day</span>
+            </div>
+          </div>
+
+          <div class="hero-right">
+            <div class="temperature-wrapper">
+              <span id="current-temp" class="current-temp">--</span>
+              <span class="temp-unit-symbol" id="display-unit">&deg;C</span>
+            </div>
+            <div class="temp-range">
+              <span class="temp-high" title="Maximum Temperature">
+                <i class="fa-solid fa-arrow-up"></i> H: <strong id="temp-max">--</strong>
+              </span>
+              <span class="temp-divider">&bull;</span>
+              <span class="temp-low" title="Minimum Temperature">
+                <i class="fa-solid fa-arrow-down"></i> L: <strong id="temp-min">--</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Weather Metrics Grid -->
+        <div class="weather-metrics-grid">
+          <!-- Metric 1: Feels Like -->
+          <div class="metric-card">
+            <div class="metric-icon feels-like">
+              <i class="fa-solid fa-temperature-half"></i>
+            </div>
+            <div class="metric-data">
+              <span class="metric-label">Feels Like</span>
+              <span id="feels-like" class="metric-value">--&deg;C</span>
+            </div>
+          </div>
+
+          <!-- Metric 2: Humidity -->
+          <div class="metric-card">
+            <div class="metric-icon humidity">
+              <i class="fa-solid fa-droplet"></i>
+            </div>
+            <div class="metric-data">
+              <span class="metric-label">Humidity</span>
+              <span id="humidity" class="metric-value">--%</span>
+            </div>
+          </div>
+
+          <!-- Metric 3: Wind Speed -->
+          <div class="metric-card">
+            <div class="metric-icon wind">
+              <i class="fa-solid fa-wind"></i>
+            </div>
+            <div class="metric-data">
+              <span class="metric-label">Wind Speed</span>
+              <span id="wind-speed" class="metric-value">-- km/h</span>
+            </div>
+          </div>
+
+          <!-- Metric 4: Atmospheric Pressure -->
+          <div class="metric-card">
+            <div class="metric-icon pressure">
+              <i class="fa-solid fa-gauge-high"></i>
+            </div>
+            <div class="metric-data">
+              <span class="metric-label">Pressure</span>
+              <span id="pressure" class="metric-value">-- hPa</span>
+            </div>
+          </div>
+
+          <!-- Metric 5: Geo Coordinates -->
+          <div class="metric-card">
+            <div class="metric-icon coordinates">
+              <i class="fa-solid fa-location-crosshairs"></i>
+            </div>
+            <div class="metric-data">
+              <span class="metric-label">Coordinates</span>
+              <span id="coordinates" class="metric-value">--&deg;N, --&deg;E</span>
+            </div>
+          </div>
+
+          <!-- Metric 6: Day / Night Status -->
+          <div class="metric-card">
+            <div class="metric-icon day-status">
+              <i class="fa-solid fa-sun" id="day-night-icon"></i>
+            </div>
+            <div class="metric-data">
+              <span class="metric-label">Daylight</span>
+              <span id="day-status" class="metric-value">Daytime</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Empty State (Shown before any search or when no data loaded) -->
+      <div id="empty-state" class="empty-state">
+        <div class="empty-state-icon">
+          <i class="fa-solid fa-earth-americas"></i>
+        </div>
+        <h3>Explore Real-Time Global Weather</h3>
+        <p>Type a city name above or select one from the quick picks to view live meteorological data.</p>
+      </div>
+
+      <!-- Recent Search History Section (localStorage) -->
+      <section class="history-section" id="history-section">
+        <div class="history-header">
+          <div class="history-title">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <h3>Recent Searches</h3>
+            <span class="history-badge" id="history-count">0</span>
+          </div>
+          <!-- Clear History Button -->
+          <button id="clear-history-btn" class="btn-text-danger" title="Clear all search history from localStorage">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Clear History</span>
+          </button>
+        </div>
+
+        <!-- History City Chips Container -->
+        <div id="history-chips-container" class="history-chips-container">
+          <p class="history-empty-text" id="history-empty-text">No recent searches yet. Search for a city to save it in browser storage.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer with Practical Information -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p><strong>Practical 12:</strong> Interactive Real-Time Weather Dashboard</p>
+        <p class="footer-tech">Technologies: HTML5 &bull; CSS3 &bull; JavaScript (ES6) &bull; jQuery 3.7.1 &bull; AJAX &bull; LocalStorage</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- API Settings Modal -->
+  <div id="settings-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-gear"></i>
+          <h3>Weather API Configuration</h3>
+        </div>
+        <button id="close-modal-btn" class="modal-close-btn" title="Close modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-description">
+          Select your preferred weather data provider. By default, <strong>Open-Meteo</strong> works out-of-the-box without requiring an API key. You can also configure your personal <strong>OpenWeatherMap</strong> API key.
+        </p>
+
+        <!-- Provider Selection -->
+        <div class="form-group">
+          <label for="api-provider-select">Weather Provider:</label>
+          <select id="api-provider-select" class="form-control">
+            <option value="open-meteo">Open-Meteo (Free, No Key Required - Default)</option>
+            <option value="openweathermap">OpenWeatherMap (Requires Free API Key)</option>
+          </select>
+        </div>
+
+        <!-- OpenWeatherMap Key Input (Conditional) -->
+        <div class="form-group" id="owm-key-group" style="display: none;">
+          <label for="owm-api-key">OpenWeatherMap API Key (32 characters):</label>
+          <div class="input-with-action">
+            <input 
+              type="password" 
+              id="owm-api-key" 
+              class="form-control" 
+              placeholder="Paste your OpenWeatherMap API Key here"
+            >
+            <button type="button" id="toggle-key-visibility" class="btn-inline-toggle" title="Show / Hide Key">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+          <small class="form-help">
+            Keys can be generated for free at <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer">openweathermap.org/api</a>. The key is securely stored in your browser's <code>localStorage</code>.
+          </small>
+        </div>
+
+        <div class="storage-info-box">
+          <i class="fa-solid fa-database"></i>
+          <div>
+            <strong>Browser Storage Integration:</strong>
+            <p>Your API provider choice, custom key, last searched city, temperature units, and history are automatically preserved across sessions using the HTML5 <code>localStorage</code> API.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="reset-settings-btn" class="btn btn-secondary">
+          <i class="fa-solid fa-rotate-left"></i> Reset Defaults
+        </button>
+        <button id="save-settings-btn" class="btn btn-primary">
+          <i class="fa-solid fa-check"></i> Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Include jQuery 3.7.1 from official CDN with fallback -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script>
+    // Local fallback in case CDN fails
+    if (typeof jQuery === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"><\/script>');
+    }
+  </script>
+
+  <!-- Application Script -->
+  <script src="script.js"></script>
+</body>
+</html>
+
